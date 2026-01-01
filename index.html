@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OtonomX Lab v3.6 - İnteraktif Ayetler</title>
+    <style>
+        :root { 
+            --sidebar-w: 135px; 
+            --middle-w: 340px;
+            
+            /* KAHVE TEMASI */
+            --primary: #3e2723;
+            --accent: #8d6e63;
+            --highlight: #bf360c; /* Vurgu Rengi (Kiremit) */
+            --bg-body: #eceff1;
+        }
+        
+        body { margin: 0; display: flex; font-family: 'Segoe UI', Tahoma, sans-serif; height: 100vh; overflow: hidden; background: var(--bg-body); color: var(--primary); }
+        
+        /* SOL VE ORTA PANEL (Öncekiyle Aynı) */
+        #sidebar { width: var(--sidebar-w); background: #fdfdfd; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; padding: 10px; z-index: 100; flex-shrink: 0; }
+        #root-list { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .root-item { padding: 8px 10px; margin-bottom: 6px; background: #fff; border-radius: 6px; border: 1px solid #cfd8dc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.1s; }
+        .root-item:hover { border-color: var(--accent); background: #efebe9; }
+        .root-item.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .branch-count { font-size: 0.75rem; background: #eceff1; padding: 2px 7px; border-radius: 10px; color: #455a64; font-weight: bold; }
+        
+        #middle-panel { width: var(--middle-w); background: #fff; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; flex-shrink: 0; box-shadow: 4px 0 10px rgba(0,0,0,0.03); }
+        #keyboard-area { padding: 15px; background: #d7ccc8; text-align: center; border-bottom: 3px solid #8d6e63; }
+        #manual-search { width: 85%; padding: 8px; margin-bottom: 10px; border: 2px solid #a1887f; border-radius: 6px; font-size: 1.2rem; text-align: center; font-family: 'me_quran', serif; outline: none; }
+        .kb-keys { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+        .kb-key { background: #f5f5f5; border: 1px solid #bcaaa4; border-radius: 4px; padding: 8px 0; cursor: pointer; font-family: 'me_quran', serif; font-size: 1.1rem; color: #4e342e; }
+        .kb-key:hover { background: #3e2723; color: #fff; }
+        .kb-btn-clear { grid-column: span 6; background: #a1887f; color: white; border: none; padding: 6px; margin-top: 8px; border-radius: 4px; cursor: pointer; }
+        
+        #info-card-container { flex: 1; overflow-y: auto; background: #fffbf5; }
+        #card-header { background: #4e342e; color: #fff; padding: 15px; margin: 0; font-size: 1.4rem; border-bottom: 4px solid #558b2f; position: sticky; top: 0; font-family: 'me_quran', serif; }
+        .card-section { padding: 20px; border-bottom: 1px solid #efebe9; }
+        .card-title { font-weight: bold; color: #5d4037; display: block; margin-bottom: 8px; font-size: 0.85rem; border-left: 3px solid #558b2f; padding-left: 10px; text-transform: uppercase; }
+        .card-text { font-size: 1rem; line-height: 1.6; color: #3e2723; }
+
+        /* SAĞ PANEL (GELİŞMİŞ GRID) */
+        #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #eceff1; }
+        #word-filters { padding: 12px 20px; background: #fff; border-bottom: 1px solid #cfd8dc; overflow-x: auto; white-space: nowrap; display: flex; gap: 10px; min-height: 55px; align-items: center; }
+        .filter-chip { padding: 6px 14px; background: #fff; border-radius: 20px; border: 1px solid #b0bec5; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #455a64; transition: 0.2s; }
+        .filter-chip.active { background: #3e2723; color: white; border-color: #3e2723; }
+
+        #timeline-grid { flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-content: start; }
+        
+        /* INTERAKTİF KART TASARIMI */
+        .timeline-item { 
+            background: #fff; border-radius: 8px; border: 1px solid #cfd8dc;
+            padding: 20px; display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s;
+            position: relative; min-height: 120px;
+        }
+        .timeline-item:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-color: var(--accent); }
+
+        /* Başlık Alanı (Adres + Küçülen Kelime) */
+        .item-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .loc-tag { font-family: monospace; font-size: 0.8rem; background: #efebe9; padding: 4px 8px; border-radius: 4px; color: #5d4037; font-weight: bold; }
+        
+        /* Başlığa taşınacak kelime (Başlangıçta gizli) */
+        .header-word { font-family: 'me_quran', serif; font-size: 1.4rem; color: var(--highlight); display: none; }
+
+        /* Ana İçerik (Büyük Kelime veya Ayet) */
+        .content-area { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 80px; text-align: center; }
+        
+        .big-word { font-size: 2.8rem; color: #3e2723; font-family: 'me_quran', serif; transition: 0.3s; }
+        
+        /* Ayet Görünümü */
+        .verse-text { 
+            font-size: 1.4rem; line-height: 1.8; color: #455a64; font-family: 'me_quran', serif; 
+            text-align: center; display: none; width: 100%;
+        }
+        /* Ayet içindeki vurgulu kelime */
+        .verse-highlight { color: #d84315; font-weight: bold; background: rgba(216, 67, 21, 0.1); border-radius: 4px; padding: 0 5px; }
+
+        .tags-area { font-size: 0.85rem; color: #90a4ae; text-align: center; font-style: italic; margin-top: auto; }
+
+        /* Açık Durum (Expanded) */
+        .timeline-item.expanded { border: 2px solid var(--accent); background: #fffbf5; grid-column: span 2; } /* Tıklanınca genişle */
+        .timeline-item.expanded .header-word { display: block; } /* Başlıktaki kelimeyi göster */
+        .timeline-item.expanded .big-word { display: none; } /* Ortadaki büyük kelimeyi gizle */
+        .timeline-item.expanded .verse-text { display: block; } /* Ayeti göster */
+
+        #load-more-btn { grid-column: span 2; padding: 15px; background: #d7ccc8; text-align: center; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+
+        @media (max-width: 1000px) {
+            #timeline-grid { grid-template-columns: 1fr; }
+            .timeline-item.expanded { grid-column: span 1; }
+            body { flex-direction: column; }
+            #sidebar, #middle-panel { width: 100%; height: auto; max-height: 250px; }
+            #keyboard-area { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div style="text-align:center; font-size:0.8rem; color:#aaa; margin-bottom:5px;">KÖKLER</div>
+    <div id="root-list"></div>
+</div>
+<div id="middle-panel">
+    <div id="keyboard-area">
+        <input type="text" id="manual-search" placeholder="Kök Ara..." readonly>
+        <div class="kb-keys" id="kb-keys"></div>
+        <button class="kb-btn-clear" onclick="clearSearch()">Temizle</button>
+    </div>
+    <div id="info-card-container">
+        <div id="card-placeholder" style="padding:40px; text-align:center; color:#999;">Bir kök seçin...</div>
+        <div id="card-content">
+            <h3 id="card-header">Kök</h3>
+            <div id="card-body"></div>
+        </div>
+    </div>
+</div>
+
+<div id="main-content">
+    <div id="word-filters"></div>
+    <div id="timeline-grid"></div>
+</div>
+
+<script>
+    let masterData = {};
+    let dictionaryData = {};
+    let versesMap = {}; // Yeni Ayet Veritabanı
+    const keys = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي";
+
+    let currentItems = [];
+    let visibleCount = 0;
+    const PAGE_SIZE = 50;
+
+    async function init() {
+        try {
+            // 3 Dosyayı da çekiyoruz: Kökler, Sözlük, Ayetler
+            const [resMaster, resDict, resVerses] = await Promise.all([
+                fetch('./roots_master.json'),
+                fetch('./kuran_sozlugu_db.json'),
+                fetch('./verses_map.json')
+            ]);
+            masterData = await resMaster.json();
+            dictionaryData = await resDict.json();
+            versesMap = await resVerses.json();
+            
+            initKeyboard();
+            renderRootList();
+        } catch (e) { console.error("Veri hatası:", e); }
+    }
+
+    // --- KLAVYE VE NORMALİZASYON ---
+    function normalizeArabic(text) {
+        if(!text) return "";
+        return text.replace(/[أإآ]/g, 'ا').replace(/[ى]/g, 'ي').replace(/[ة]/g, 'ه');
+    }
+    function initKeyboard() {
+        const kbContainer = document.getElementById('kb-keys');
+        keys.split('').forEach(char => {
+            const btn = document.createElement('div');
+            btn.className = 'kb-key';
+            btn.textContent = char;
+            btn.onclick = () => addChar(char);
+            kbContainer.appendChild(btn);
+        });
+    }
+    function addChar(char) {
+        const input = document.getElementById('manual-search');
+        if (input.value.length < 4) { input.value += char; renderRootList(input.value); }
+    }
+    function clearSearch() { document.getElementById('manual-search').value = ""; renderRootList(); }
+
+    // --- LİSTELEME ---
+    function renderRootList(filter = "") {
+        const list = document.getElementById('root-list');
+        list.innerHTML = "";
+        const normFilter = normalizeArabic(filter);
+        Object.keys(masterData).filter(r => normalizeArabic(r).includes(normFilter)).sort().forEach(root => {
+            const count = masterData[root].length;
+            const div = document.createElement('div');
+            div.className = 'root-item';
+            div.innerHTML = `<span class="branch-count">${count}</span><span style="font-family:'me_quran', serif; font-size:1.1rem;">${root}</span>`;
+            div.onclick = () => selectRoot(root, div);
+            list.appendChild(div);
+        });
+    }
+
+    // --- SEÇİM ---
+    function selectRoot(root, element) {
+        document.querySelectorAll('.root-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+
+        const dict = dictionaryData.find(d => d.kok === root);
+        const cardContent = document.getElementById('card-content');
+        const cardBody = document.getElementById('card-body');
+        const cardHeader = document.getElementById('card-header');
+
+        document.getElementById('card-placeholder').style.display = 'none';
+        cardContent.style.display = 'block';
+        cardHeader.innerHTML = `${root} <span style="font-size:0.8rem; float:left; opacity:0.7; font-family:sans-serif; margin-top:5px;">(${masterData[root].length} DAL)</span>`;
+        
+        if (dict) {
+            cardBody.innerHTML = `
+                <div class="card-section"><span class="card-title">🌱 Fiziksel Boyut</span><div class="card-text">${dict.fiziksel}</div></div>
+                <div class="card-section"><span class="card-title">💎 Ontolojik Dönüşüm</span><div class="card-text">${dict.ontolojik}</div></div>
+                <div class="card-section"><span class="card-title">⚖️ Sünnetullah</span><div class="card-text">${dict.sunnetullah}</div></div>
+                <div class="card-section"><span class="card-title">📖 Genel Tanım</span><div class="card-text">${dict.tanim}</div></div>
+            `;
+        } else { cardBody.innerHTML = "<div class='card-section'>Veri hazırlanıyor...</div>"; }
+
+        prepareVerses(root);
+    }
+
+    // --- AYETLERİ YÖNETME ---
+    function prepareVerses(root, filterWord = null) {
+        const allItems = masterData[root];
+        const filtersDiv = document.getElementById('word-filters');
+
+        if (!filterWord) {
+            filtersDiv.innerHTML = "";
+            const wordCounts = {};
+            allItems.forEach(item => { wordCounts[item.t] = (wordCounts[item.t] || 0) + 1; });
+            const allBtn = document.createElement('div');
+            allBtn.className = 'filter-chip active';
+            allBtn.innerHTML = `Tümü (${allItems.length})`;
+            allBtn.onclick = () => prepareVerses(root, null);
+            filtersDiv.appendChild(allBtn);
+            Object.keys(wordCounts).sort((a,b) => wordCounts[b] - wordCounts[a]).forEach(word => {
+                const chip = document.createElement('div');
+                chip.className = 'filter-chip';
+                chip.innerHTML = `<span style="font-family:'me_quran', serif;">${word}</span> <span style="font-size:0.7rem; opacity:0.7;">${wordCounts[word]}</span>`;
+                chip.onclick = (e) => {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    prepareVerses(root, word);
+                };
+                filtersDiv.appendChild(chip);
+            });
+        }
+
+        currentItems = filterWord ? allItems.filter(i => i.t === filterWord) : allItems;
+        visibleCount = 0;
+        document.getElementById('timeline-grid').innerHTML = "";
+        loadMoreItems(filterWord);
+    }
+
+    function loadMoreItems(filterWord) {
+        const grid = document.getElementById('timeline-grid');
+        const nextBatch = currentItems.slice(visibleCount, visibleCount + PAGE_SIZE);
+        const oldBtn = document.getElementById('load-more-btn');
+        if(oldBtn) oldBtn.remove();
+
+        nextBatch.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'timeline-item';
+            
+            // Ayet Metnini Hazırla
+            const fullVerse = versesMap[item.cv] || "Ayet yüklenemedi.";
+            // Kelimeyi boyamak için basit bir replace (Daha hassas yapılabilir ama şimdilik bu yeterli)
+            const highlightedVerse = fullVerse.replace(item.t, `<span class="verse-highlight">${item.t}</span>`);
+
+            div.innerHTML = `
+                <div class="item-header">
+                    <div class="header-left">
+                        <span class="loc-tag">${item.loc}</span>
+                        <span class="header-word">${item.t}</span>
+                    </div>
+                    <span style="font-size:0.8rem; color:#8d6e63;">${item.type}</span>
+                </div>
+                
+                <div class="content-area">
+                    <div class="big-word">${item.t}</div>
+                    <div class="verse-text">${highlightedVerse}</div>
+                </div>
+
+                <div class="tags-area">${item.tags.join(' | ')}</div>
+            `;
+            
+            // TIKLAMA OLAYI: Genişlet / Daralt
+            div.onclick = () => {
+                div.classList.toggle('expanded');
+            };
+
+            grid.appendChild(div);
+        });
+
+        visibleCount += nextBatch.length;
+        if (visibleCount < currentItems.length) {
+            const btn = document.createElement('div');
+            btn.id = 'load-more-btn';
+            btn.textContent = `Daha Fazla Göster (+${Math.min(PAGE_SIZE, currentItems.length - visibleCount)})`;
+            btn.onclick = () => loadMoreItems(filterWord);
+            grid.appendChild(btn);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
