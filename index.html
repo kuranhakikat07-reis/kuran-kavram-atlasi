@@ -117,6 +117,45 @@
             #sidebar, #middle-panel { width: 100%; height: auto; max-height: 400px; }
             #keyboard-area { display: none; }
         }
+        @media (max-width: 600px) {
+    /* Vizyon Banner'ını mobilde daha kompakt yap */
+    #vision-header {
+        padding: 30px 15px !important;
+    }
+    #vision-header h1 {
+        font-size: 1.5rem !important; /* Arapça başlık küçülsün */
+    }
+    #vision-header h2 {
+        font-size: 1rem !important; /* Alt başlık küçülsün */
+    }
+    #vision-header p {
+        font-size: 0.9rem !important; /* Vizyon metni küçülsün */
+        line-height: 1.4 !important;
+    }
+    
+    /* Analiz Butonunu mobilde daha zarif yap */
+    #vision-header button {
+        padding: 10px 25px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Panelleri mobilde üst üste ama tam genişlikte diz */
+    #app-container {
+        flex-direction: column;
+        overflow-y: auto; /* Kaydırılabilir olsun */
+    }
+    #sidebar, #middle-panel, #main-content {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        flex: none !important;
+    }
+    
+    /* Klavye alanını mobilde gizleyebiliriz ya da küçültebiliriz */
+    #keyboard-area {
+        display: none; /* Mobilde yazmak zor olduğu için kök listesi yeterlidir */
+    }
+}
     </style>
 </head>
 <body>
@@ -356,4 +395,5 @@ function startAnalysis() {
 </script>
 </body>
 </html>
+
 
