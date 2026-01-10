@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OtonomX Lab v3.7 - İnteraktif Ayetler & Sistem Yamaları</title>
+    <title>Sistemik İnşa Protokolü - İnteraktif Ayet Analizi</title>
     <style>
         :root { 
             --sidebar-w: 135px; 
@@ -12,29 +12,39 @@
             --accent: #8d6e63;
             --highlight: #bf360c; 
             --bg-body: #eceff1;
-            --yama-bg: #f9fbe7; /* Hafif sarı/yeşil yama tonu */
+            --yama-bg: #f9fbe7;
             --yama-border: #afb42b;
         }
         
-        /* Mevcut body tanımını bununla değiştir */
-body { 
-    margin: 0; 
-    display: flex; 
-    flex-direction: column; /* Sayfayı yukarıdan aşağıya (banner -> içerik) sıralar */
-    font-family: 'Segoe UI', Tahoma, sans-serif; 
-    height: 100vh; 
-    overflow: hidden; 
-    background: var(--bg-body); 
-    color: var(--primary); 
-}
+        body { 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; /* Banner üstte, içerik altta */
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: var(--bg-body); 
+            color: var(--primary); 
+        }
 
-/* Panellerin bozulmaması için bu yeni stili ekle */
-#app-container {
-    display: flex;
-    flex: 1; 
-    overflow: hidden;
-    width: 100%;
-}
+        /* Banner Stili */
+        #vision-header {
+            background: #1a1a1a;
+            color: #eceff1;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid #bf360c;
+            flex-shrink: 0;
+            z-index: 1000;
+        }
+
+        /* Ana Uygulama Taşıyıcısı */
+        #app-container {
+            display: flex;
+            flex: 1; 
+            overflow: hidden;
+            width: 100%;
+        }
         
         #sidebar { width: var(--sidebar-w); background: #fdfdfd; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; padding: 10px; z-index: 100; flex-shrink: 0; }
         #root-list { flex: 1; overflow-y: auto; padding-right: 5px; }
@@ -82,7 +92,6 @@ body {
         .verse-text { font-size: 1.4rem; line-height: 1.8; color: #455a64; font-family: 'me_quran', serif; text-align: center; display: none; width: 100%; }
         .verse-highlight { color: #d84315; font-weight: bold; background: rgba(216, 67, 21, 0.1); border-radius: 4px; padding: 0 5px; }
 
-        /* YAMA ALANI STİLLERİ */
         .yama-box {
             display: none; margin-top: 15px; padding: 15px;
             background-color: var(--yama-bg); border-left: 4px solid var(--yama-border);
@@ -103,14 +112,16 @@ body {
         @media (max-width: 1000px) {
             #timeline-grid { grid-template-columns: 1fr; }
             .timeline-item.expanded { grid-column: span 1; }
-            body { flex-direction: column; }
-            #sidebar, #middle-panel { width: 100%; height: auto; max-height: 250px; }
+            body { flex-direction: column; height: auto; overflow: auto; }
+            #app-container { flex-direction: column; height: auto; overflow: visible; }
+            #sidebar, #middle-panel { width: 100%; height: auto; max-height: 400px; }
             #keyboard-area { display: none; }
         }
     </style>
 </head>
 <body>
-<div id="vision-header" style="background: #1a1a1a; color: #eceff1; padding: 50px 20px; text-align: center; border-bottom: 5px solid #bf360c; flex-shrink: 0;">
+
+<div id="vision-header">
     <h1 style="font-family: 'me_quran', serif; letter-spacing: 4px; color: #bf360c; margin: 0 0 15px 0; font-size: 2.2rem;">اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ</h1>
     <h2 style="font-size: 1.4rem; margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; color: #fff;">İKRA: SİSTEMİK İNŞA PROTOKOLÜ</h2>
     <div style="max-width: 900px; margin: 0 auto; line-height: 1.7; font-size: 1.1rem; text-align: center; border-top: 1px solid #455a64; padding-top: 20px;">
@@ -127,16 +138,30 @@ body {
 
 <div id="app-container">
     <div id="sidebar">
-        </div>
+        <div style="text-align:center; font-size:0.8rem; color:#aaa; margin-bottom:5px;">KÖKLER</div>
+        <div id="root-list"></div>
+    </div>
     
     <div id="middle-panel">
+        <div id="keyboard-area">
+            <input type="text" id="manual-search" placeholder="Kök Ara..." readonly>
+            <div class="kb-keys" id="kb-keys"></div>
+            <button class="kb-btn-clear" onclick="clearSearch()">Temizle</button>
         </div>
+        <div id="info-card-container">
+            <div id="card-placeholder" style="padding:40px; text-align:center; color:#999;">Bir kök seçin...</div>
+            <div id="card-content" style="display:none;">
+                <h3 id="card-header">Kök</h3>
+                <div id="card-body"></div>
+            </div>
+        </div>
+    </div>
     
     <div id="main-content">
-        </div>
+        <div id="word-filters"></div>
+        <div id="timeline-grid"></div>
+    </div>
 </div>
-
-... script kodların en altta kalmaya devam etsin ...
 
 <script>
     let masterData = {};
@@ -255,26 +280,20 @@ body {
         loadMoreItems(filterWord);
     }
 
-    // YAMA GETİRME FONKSİYONU
-   async function fetchYama(loc, targetId) {
-    const box = document.getElementById(targetId);
-    // 96:1:1 gibi gelen adresi parçalara ayırıp ilk ikisini (96 ve 1) alıyoruz
-    const parts = loc.split(':');
-    if (parts.length < 2) return;
-    
-    const cleanLoc = `${parts[0].trim()}-${parts[1].trim()}`; // 96-1 formatına getirir
-    
-    try {
-        const response = await fetch(`./yamalar/${cleanLoc}.txt`);
-        if (response.ok) {
-            const text = await response.text();
-            box.innerHTML = `<div class="yama-title">SİSTEM YAMASI</div>${text}`;
-            box.style.display = 'block';
-        } else {
-            box.style.display = 'none';
-        }
-    } catch (e) { box.style.display = 'none'; }
-}
+    async function fetchYama(loc, targetId) {
+        const box = document.getElementById(targetId);
+        const parts = loc.split(':');
+        if (parts.length < 2) return;
+        const cleanLoc = `${parts[0].trim()}-${parts[1].trim()}`;
+        try {
+            const response = await fetch(`./yamalar/${cleanLoc}.txt`);
+            if (response.ok) {
+                const text = await response.text();
+                box.innerHTML = `<div class="yama-title">SİSTEM YAMASI</div>${text}`;
+                box.style.display = 'block';
+            } else { box.style.display = 'none'; }
+        } catch (e) { box.style.display = 'none'; }
+    }
 
     function loadMoreItems(filterWord) {
         const grid = document.getElementById('timeline-grid');
@@ -286,7 +305,6 @@ body {
             const div = document.createElement('div');
             div.className = 'timeline-item';
             const yamaId = `yama-${item.cv}`;
-            
             const fullVerse = versesMap[item.cv] || "Ayet yüklenemedi.";
             const highlightedVerse = fullVerse.replace(item.t, `<span class="verse-highlight">${item.t}</span>`);
 
@@ -298,24 +316,17 @@ body {
                     </div>
                     <span style="font-size:0.8rem; color:#8d6e63;">${item.type}</span>
                 </div>
-                
                 <div class="content-area">
                     <div class="big-word">${item.t}</div>
                     <div class="verse-text">${highlightedVerse}</div>
                 </div>
-
                 <div id="${yamaId}" class="yama-box"></div>
-
                 <div class="tags-area">${item.tags.join(' | ')}</div>
             `;
-            
             div.onclick = () => {
                 const isExpanded = div.classList.toggle('expanded');
-                if (isExpanded) {
-                    fetchYama(item.loc, yamaId);
-                }
+                if (isExpanded) { fetchYama(item.loc, yamaId); }
             };
-
             grid.appendChild(div);
         });
 
@@ -333,5 +344,3 @@ body {
 </script>
 </body>
 </html>
-
-
