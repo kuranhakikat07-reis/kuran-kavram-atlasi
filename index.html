@@ -403,22 +403,19 @@
     }
 function startAnalysis() {
     const banner = document.getElementById('vision-header');
-    const app = document.getElementById('app-container');
-    
-    // Perdeyi yukarı sür
+    // Perdeyi yukarı fırlat
     banner.style.transform = 'translateY(-100%)';
     
-    // Geçiş bittiğinde perdeyi tamamen kaldır ve alt tarafı serbest bırak
+    // Perde tamamen çıkınca bellekten ve ekrandan sil
     setTimeout(() => {
-        banner.style.removeProperty('display'); // Varsa display:flex'i temizle
         banner.style.display = 'none';
-        app.style.visibility = 'visible'; // Laboratuvarı görünür kıl
-    }, 800);
+    }, 850);
 }
     init();
 </script>
 </body>
 </html>
+
 
 
 
