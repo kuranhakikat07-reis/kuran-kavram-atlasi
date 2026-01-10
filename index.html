@@ -16,33 +16,43 @@
             --yama-border: #afb42b;
         }
         
-        body { 
+       body { 
     margin: 0; 
-    display: flex; 
-    flex-direction: column; 
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
     height: 100vh; 
     width: 100vw;
     overflow: hidden; 
+    background: var(--bg-body);
+    /* Flex-direction kaldırıldı çünkü banner artık 'fixed' olacak */
 }
 
-        /* Banner Stili */
-        #vision-header {
-            background: #1a1a1a;
-            color: #eceff1;
-            padding: 40px 20px;
-            text-align: center;
-            border-bottom: 5px solid #bf360c;
-            flex-shrink: 0;
-            z-index: 1000;
-        }
-
-        /* Ana Uygulama Taşıyıcısı */
-        #app-container {
+#vision-header {
+    background: #1a1a1a;
+    color: #eceff1;
+    height: 100vh; /* Tam ekran */
+    width: 100vw;
     display: flex;
-    flex: 1; 
-    width: 100%;
-    overflow: hidden;
-    position: relative; /* Katman karışıklığını önlemek için */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: fixed; /* Diğer her şeyin üzerinde dursun */
+    top: 0;
+    left: 0;
+    z-index: 2000;
+    transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    border-bottom: 5px solid #bf360c;
+}
+
+#app-container {
+    display: flex; /* Paneller yan yana (Sidebar, Middle, Main) */
+    height: 100vh;
+    width: 100vw;
+    position: absolute; /* Banner'ın altında hazır beklesin */
+    top: 0;
+    left: 0;
+    z-index: 1; 
 }
         
         #sidebar { width: var(--sidebar-w); background: #fdfdfd; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; padding: 10px; z-index: 100; flex-shrink: 0; }
@@ -409,6 +419,7 @@ function startAnalysis() {
 </script>
 </body>
 </html>
+
 
 
 
