@@ -121,18 +121,22 @@
 </head>
 <body>
 
-<div id="vision-header">
-    <h1 style="font-family: 'me_quran', serif; letter-spacing: 4px; color: #bf360c; margin: 0 0 15px 0; font-size: 2.2rem;">اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ</h1>
-    <h2 style="font-size: 1.4rem; margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; color: #fff;">İKRA: SİSTEMİK İNŞA PROTOKOLÜ</h2>
-    <div style="max-width: 900px; margin: 0 auto; line-height: 1.7; font-size: 1.1rem; text-align: center; border-top: 1px solid #455a64; padding-top: 20px;">
-        <p style="margin-bottom: 15px;">
+<div id="vision-header" style="background: #1a1a1a; color: #eceff1; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: fixed; width: 100%; z-index: 2000; transition: transform 0.8s ease-in-out;">
+    <h1 style="font-family: 'me_quran', serif; letter-spacing: 4px; color: #bf360c; margin: 0 0 15px 0; font-size: 3rem;">اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ</h1>
+    <h2 style="font-size: 1.8rem; margin-bottom: 25px; font-weight: 300; letter-spacing: 2px; color: #fff;">İKRA: SİSTEMİK İNŞA PROTOKOLÜ</h2>
+    <div style="max-width: 850px; margin: 0 auto; line-height: 1.8; font-size: 1.2rem; border-top: 1px solid #455a64; padding-top: 25px; padding-left: 20px; padding-right: 20px;">
+        <p style="margin-bottom: 20px;">
             İnsan, kendisine verilen <strong>"micro yeteneklerin"</strong> farkına varmadan eşyayı doğru okuyamaz. 
-            Eğer bizdeki "tasarım gücü" olmasaydı, evrenin hangi ölçüyle yaratıldığını asla kavrayamazdık. 
+            Eğer bizdeki "tasarım gücü" olmasaydı, evrenin hangi ölçülerle yaratıldığını asla kavrayamazdık. 
             <br><strong>"Benzer benzeriyle bilinir."</strong>
         </p>
-        <p style="color: #90a4ae; font-size: 0.95rem; font-style: italic; margin: 0;">
+        <p style="color: #90a4ae; font-size: 1rem; font-style: italic; margin-bottom: 40px;">
             Bu çalışma; Samed, Ehad ve Küfüv olanın benzersizliğini, bizdeki micro-tecelliler üzerinden sistemik bir bütünlükle analiz etme çabasıdır.
         </p>
+        
+        <button onclick="startAnalysis()" style="background: #bf360c; color: white; border: none; padding: 15px 40px; font-size: 1.1rem; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(191, 54, 12, 0.4);">
+            ANALİZ İÇİN TIKLA
+        </button>
     </div>
 </div>
 
@@ -339,8 +343,17 @@
             grid.appendChild(btn);
         }
     }
-
+function startAnalysis() {
+    const banner = document.getElementById('vision-header');
+    // Banner'ı yukarı kaydırarak gizle
+    banner.style.transform = 'translateY(-100%)';
+    // 0.8 saniye sonra (geçiş bitince) tıklanabilirliği kaldır ki alt sayfa rahat kullanılsın
+    setTimeout(() => {
+        banner.style.display = 'none';
+    }, 800);
+}
     init();
 </script>
 </body>
 </html>
+
