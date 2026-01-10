@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OtonomX Lab v3.6 - İnteraktif Ayetler</title>
+    <title>OtonomX Lab v3.7 - İnteraktif Ayetler & Sistem Yamaları</title>
     <style>
         :root { 
             --sidebar-w: 135px; 
             --middle-w: 340px;
-            
-            /* KAHVE TEMASI */
             --primary: #3e2723;
             --accent: #8d6e63;
-            --highlight: #bf360c; /* Vurgu Rengi (Kiremit) */
+            --highlight: #bf360c; 
             --bg-body: #eceff1;
+            --yama-bg: #f9fbe7; /* Hafif sarı/yeşil yama tonu */
+            --yama-border: #afb42b;
         }
         
         body { margin: 0; display: flex; font-family: 'Segoe UI', Tahoma, sans-serif; height: 100vh; overflow: hidden; background: var(--bg-body); color: var(--primary); }
         
-        /* SOL VE ORTA PANEL (Öncekiyle Aynı) */
         #sidebar { width: var(--sidebar-w); background: #fdfdfd; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; padding: 10px; z-index: 100; flex-shrink: 0; }
         #root-list { flex: 1; overflow-y: auto; padding-right: 5px; }
         .root-item { padding: 8px 10px; margin-bottom: 6px; background: #fff; border-radius: 6px; border: 1px solid #cfd8dc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.1s; }
@@ -40,7 +39,6 @@
         .card-title { font-weight: bold; color: #5d4037; display: block; margin-bottom: 8px; font-size: 0.85rem; border-left: 3px solid #558b2f; padding-left: 10px; text-transform: uppercase; }
         .card-text { font-size: 1rem; line-height: 1.6; color: #3e2723; }
 
-        /* SAĞ PANEL (GELİŞMİŞ GRID) */
         #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #eceff1; }
         #word-filters { padding: 12px 20px; background: #fff; border-bottom: 1px solid #cfd8dc; overflow-x: auto; white-space: nowrap; display: flex; gap: 10px; min-height: 55px; align-items: center; }
         .filter-chip { padding: 6px 14px; background: #fff; border-radius: 20px; border: 1px solid #b0bec5; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #455a64; transition: 0.2s; }
@@ -48,7 +46,6 @@
 
         #timeline-grid { flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-content: start; }
         
-        /* INTERAKTİF KART TASARIMI */
         .timeline-item { 
             background: #fff; border-radius: 8px; border: 1px solid #cfd8dc;
             padding: 20px; display: flex; flex-direction: column; gap: 10px;
@@ -57,35 +54,31 @@
         }
         .timeline-item:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-color: var(--accent); }
 
-        /* Başlık Alanı (Adres + Küçülen Kelime) */
         .item-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
-        
         .header-left { display: flex; align-items: center; gap: 10px; }
         .loc-tag { font-family: monospace; font-size: 0.8rem; background: #efebe9; padding: 4px 8px; border-radius: 4px; color: #5d4037; font-weight: bold; }
-        
-        /* Başlığa taşınacak kelime (Başlangıçta gizli) */
         .header-word { font-family: 'me_quran', serif; font-size: 1.4rem; color: var(--highlight); display: none; }
 
-        /* Ana İçerik (Büyük Kelime veya Ayet) */
         .content-area { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 80px; text-align: center; }
-        
         .big-word { font-size: 2.8rem; color: #3e2723; font-family: 'me_quran', serif; transition: 0.3s; }
-        
-        /* Ayet Görünümü */
-        .verse-text { 
-            font-size: 1.4rem; line-height: 1.8; color: #455a64; font-family: 'me_quran', serif; 
-            text-align: center; display: none; width: 100%;
-        }
-        /* Ayet içindeki vurgulu kelime */
+        .verse-text { font-size: 1.4rem; line-height: 1.8; color: #455a64; font-family: 'me_quran', serif; text-align: center; display: none; width: 100%; }
         .verse-highlight { color: #d84315; font-weight: bold; background: rgba(216, 67, 21, 0.1); border-radius: 4px; padding: 0 5px; }
+
+        /* YAMA ALANI STİLLERİ */
+        .yama-box {
+            display: none; margin-top: 15px; padding: 15px;
+            background-color: var(--yama-bg); border-left: 4px solid var(--yama-border);
+            border-radius: 4px; font-size: 0.95rem; line-height: 1.5; color: #33691e;
+        }
+        .yama-title { font-weight: bold; margin-bottom: 5px; color: #1b5e20; text-transform: uppercase; font-size: 0.8rem; }
 
         .tags-area { font-size: 0.85rem; color: #90a4ae; text-align: center; font-style: italic; margin-top: auto; }
 
-        /* Açık Durum (Expanded) */
-        .timeline-item.expanded { border: 2px solid var(--accent); background: #fffbf5; grid-column: span 2; } /* Tıklanınca genişle */
-        .timeline-item.expanded .header-word { display: block; } /* Başlıktaki kelimeyi göster */
-        .timeline-item.expanded .big-word { display: none; } /* Ortadaki büyük kelimeyi gizle */
-        .timeline-item.expanded .verse-text { display: block; } /* Ayeti göster */
+        .timeline-item.expanded { border: 2px solid var(--accent); background: #fffbf5; grid-column: span 2; }
+        .timeline-item.expanded .header-word { display: block; }
+        .timeline-item.expanded .big-word { display: none; }
+        .timeline-item.expanded .verse-text { display: block; }
+        .timeline-item.expanded .yama-box { display: block; }
 
         #load-more-btn { grid-column: span 2; padding: 15px; background: #d7ccc8; text-align: center; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
 
@@ -112,7 +105,7 @@
     </div>
     <div id="info-card-container">
         <div id="card-placeholder" style="padding:40px; text-align:center; color:#999;">Bir kök seçin...</div>
-        <div id="card-content">
+        <div id="card-content" style="display:none;">
             <h3 id="card-header">Kök</h3>
             <div id="card-body"></div>
         </div>
@@ -127,7 +120,7 @@
 <script>
     let masterData = {};
     let dictionaryData = {};
-    let versesMap = {}; // Yeni Ayet Veritabanı
+    let versesMap = {}; 
     const keys = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي";
 
     let currentItems = [];
@@ -136,7 +129,6 @@
 
     async function init() {
         try {
-            // 3 Dosyayı da çekiyoruz: Kökler, Sözlük, Ayetler
             const [resMaster, resDict, resVerses] = await Promise.all([
                 fetch('./roots_master.json'),
                 fetch('./kuran_sozlugu_db.json'),
@@ -151,7 +143,6 @@
         } catch (e) { console.error("Veri hatası:", e); }
     }
 
-    // --- KLAVYE VE NORMALİZASYON ---
     function normalizeArabic(text) {
         if(!text) return "";
         return text.replace(/[أإآ]/g, 'ا').replace(/[ى]/g, 'ي').replace(/[ة]/g, 'ه');
@@ -172,7 +163,6 @@
     }
     function clearSearch() { document.getElementById('manual-search').value = ""; renderRootList(); }
 
-    // --- LİSTELEME ---
     function renderRootList(filter = "") {
         const list = document.getElementById('root-list');
         list.innerHTML = "";
@@ -187,7 +177,6 @@
         });
     }
 
-    // --- SEÇİM ---
     function selectRoot(root, element) {
         document.querySelectorAll('.root-item').forEach(i => i.classList.remove('active'));
         element.classList.add('active');
@@ -213,7 +202,6 @@
         prepareVerses(root);
     }
 
-    // --- AYETLERİ YÖNETME ---
     function prepareVerses(root, filterWord = null) {
         const allItems = masterData[root];
         const filtersDiv = document.getElementById('word-filters');
@@ -246,6 +234,23 @@
         loadMoreItems(filterWord);
     }
 
+    // YAMA GETİRME FONKSİYONU
+    async function fetchYama(loc, targetId) {
+        const box = document.getElementById(targetId);
+        // Adresteki parantezleri temizleyip sure-ayet formatına getiriyoruz (Örn: 96:1 (1) -> 96-1)
+        const cleanLoc = loc.split('(')[0].trim().replace(':', '-');
+        try {
+            const response = await fetch(`./yamalar/${cleanLoc}.txt`);
+            if (response.ok) {
+                const text = await response.text();
+                box.innerHTML = `<div class="yama-title">SİSTEM YAMASI</div>${text}`;
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        } catch (e) { box.style.display = 'none'; }
+    }
+
     function loadMoreItems(filterWord) {
         const grid = document.getElementById('timeline-grid');
         const nextBatch = currentItems.slice(visibleCount, visibleCount + PAGE_SIZE);
@@ -255,10 +260,9 @@
         nextBatch.forEach(item => {
             const div = document.createElement('div');
             div.className = 'timeline-item';
+            const yamaId = `yama-${item.cv}`;
             
-            // Ayet Metnini Hazırla
             const fullVerse = versesMap[item.cv] || "Ayet yüklenemedi.";
-            // Kelimeyi boyamak için basit bir replace (Daha hassas yapılabilir ama şimdilik bu yeterli)
             const highlightedVerse = fullVerse.replace(item.t, `<span class="verse-highlight">${item.t}</span>`);
 
             div.innerHTML = `
@@ -275,12 +279,16 @@
                     <div class="verse-text">${highlightedVerse}</div>
                 </div>
 
+                <div id="${yamaId}" class="yama-box"></div>
+
                 <div class="tags-area">${item.tags.join(' | ')}</div>
             `;
             
-            // TIKLAMA OLAYI: Genişlet / Daralt
             div.onclick = () => {
-                div.classList.toggle('expanded');
+                const isExpanded = div.classList.toggle('expanded');
+                if (isExpanded) {
+                    fetchYama(item.loc, yamaId);
+                }
             };
 
             grid.appendChild(div);
