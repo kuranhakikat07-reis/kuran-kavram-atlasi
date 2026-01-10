@@ -17,15 +17,13 @@
         }
         
         body { 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; /* Banner üstte, içerik altta */
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            height: 100vh; 
-            overflow: hidden; 
-            background: var(--bg-body); 
-            color: var(--primary); 
-        }
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    width: 100vw;
+    overflow: hidden; 
+}
 
         /* Banner Stili */
         #vision-header {
@@ -40,11 +38,12 @@
 
         /* Ana Uygulama Taşıyıcısı */
         #app-container {
-            display: flex;
-            flex: 1; 
-            overflow: hidden;
-            width: 100%;
-        }
+    display: flex;
+    flex: 1; 
+    width: 100%;
+    overflow: hidden;
+    position: relative; /* Katman karışıklığını önlemek için */
+}
         
         #sidebar { width: var(--sidebar-w); background: #fdfdfd; border-right: 1px solid #cfd8dc; display: flex; flex-direction: column; padding: 10px; z-index: 100; flex-shrink: 0; }
         #root-list { flex: 1; overflow-y: auto; padding-right: 5px; }
@@ -394,17 +393,23 @@
     }
 function startAnalysis() {
     const banner = document.getElementById('vision-header');
-    // Banner'ı yukarı kaydırarak gizle
+    const app = document.getElementById('app-container');
+    
+    // Perdeyi yukarı sür
     banner.style.transform = 'translateY(-100%)';
-    // 0.8 saniye sonra (geçiş bitince) tıklanabilirliği kaldır ki alt sayfa rahat kullanılsın
+    
+    // Geçiş bittiğinde perdeyi tamamen kaldır ve alt tarafı serbest bırak
     setTimeout(() => {
+        banner.style.removeProperty('display'); // Varsa display:flex'i temizle
         banner.style.display = 'none';
+        app.style.visibility = 'visible'; // Laboratuvarı görünür kıl
     }, 800);
 }
     init();
 </script>
 </body>
 </html>
+
 
 
 
