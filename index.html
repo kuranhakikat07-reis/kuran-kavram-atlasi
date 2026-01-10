@@ -235,21 +235,25 @@
     }
 
     // YAMA GETİRME FONKSİYONU
-    async function fetchYama(loc, targetId) {
-        const box = document.getElementById(targetId);
-        // Adresteki parantezleri temizleyip sure-ayet formatına getiriyoruz (Örn: 96:1 (1) -> 96-1)
-        const cleanLoc = loc.split('(')[0].trim().replace(':', '-');
-        try {
-            const response = await fetch(`./yamalar/${cleanLoc}.txt`);
-            if (response.ok) {
-                const text = await response.text();
-                box.innerHTML = `<div class="yama-title">SİSTEM YAMASI</div>${text}`;
-                box.style.display = 'block';
-            } else {
-                box.style.display = 'none';
-            }
-        } catch (e) { box.style.display = 'none'; }
-    }
+   async function fetchYama(loc, targetId) {
+    const box = document.getElementById(targetId);
+    // 96:1:1 gibi gelen adresi parçalara ayırıp ilk ikisini (96 ve 1) alıyoruz
+    const parts = loc.split(':');
+    if (parts.length < 2) return;
+    
+    const cleanLoc = `${parts[0].trim()}-${parts[1].trim()}`; // 96-1 formatına getirir
+    
+    try {
+        const response = await fetch(`./yamalar/${cleanLoc}.txt`);
+        if (response.ok) {
+            const text = await response.text();
+            box.innerHTML = `<div class="yama-title">SİSTEM YAMASI</div>${text}`;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    } catch (e) { box.style.display = 'none'; }
+}
 
     function loadMoreItems(filterWord) {
         const grid = document.getElementById('timeline-grid');
@@ -308,3 +312,4 @@
 </script>
 </body>
 </html>
+
