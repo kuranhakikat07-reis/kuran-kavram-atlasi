@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>OtonomX Lab v2.0 | Atlas</title>
+    <style>
+        :root {
+            --bg-dark: #1A1210; --bg-panel: #2D1B18;
+            --text-main: #EFEBE9; --accent: #FFAB91; --gold: #FFD700;
+        }
+        body { background: var(--bg-dark); color: var(--text-main); font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .main-wrapper { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        /* ARAPÇA OKUNAKLILIK VE LIGATURE DÜZELTMESİ */
+        .ayat-display { 
+            font-size: 42px; direction: rtl; line-height: 2; text-align: center;
+            font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "kern" 1, "liga" 1, "dlig" 1;
+            margin: 40px 0;
+        }
+        .root-link { color: var(--accent); cursor: pointer; border-bottom: 1px dotted var(--accent); transition: 0.3s; }
+        .root-link:hover { color: var(--gold); border-bottom: 1px solid var(--gold); }
+
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .panel { background: var(--bg-panel); border-radius: 12px; padding: 20px; border: 1px solid #4E342E; }
+        .yama-content { white-space: pre-wrap; font-size: 17px; line-height: 1.7; color: #D7CCC8; }
+        
+        /* KELİME MEAL ŞERİDİ */
+        .word-analysis { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        .word-unit { text-align: center; border: 1px solid #3E2723; padding: 10px; border-radius: 8px; }
+        .w-ar { font-size: 24px; color: var(--gold); }
+        .w-tr { font-size: 12px; color: var(--accent); }
+        .w-mean { font-size: 14px; color: #BCAAA4; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div style="text-align:center; color:var(--accent); letter-spacing:5px;">OTONOMX LAB v2.0</div>
+        
+        <div style="text-align:center; margin: 20px 0;">
+            <input type="text" id="v-input" placeholder="96:1" style="background:#000; color:#fff; border:1px solid var(--accent); padding:10px; border-radius:5px; text-align:center;">
+            <button onclick="loadSystem()" style="background:var(--accent); border:none; padding:10px 20px; cursor:pointer; font-weight:bold; border-radius:5px;">SİSTEMİ ATEŞLE</button>
+        </div>
+
+        <div id="ayat-box" class="ayat-display">Ayet seçiniz...</div>
+        
+        <div id="word-strip" class="word-analysis"></div>
+
+        <div class="analysis-grid">
+            <div class="panel">
+                <h3 style="color:var(--gold); border-bottom:1px solid #5D4037;">KÖK & BAB ANALİZİ</h3>
+                <div id="bab-content">Kelimelere tıklayarak teknik detayları yükleyin.</div>
+            </div>
+            
+            <div class="panel">
+                <h3 style="color:var(--accent); border-bottom:1px solid #5D4037;">SİSTEMİK İNŞA (YAMA)</h3>
+                <div id="yama-box" class="yama-content">Bu ayet için yama yüklenmedi.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSystem() {
+            const val = document.getElementById('v-input').value.split(':');
+            const s = val[0], a = val[1];
+
+            // 1. AYET METNİ VE KÖKLERİ GETİR
+            // (Burada senin verses_map_akilli.json dosyanı kullandığını varsayıyorum)
+            
+            // 2. MEAL VE OKUNUŞU GETİR (Modüler Sure Dosyası)
+            const mealRes = await fetch(`data/mealler/${s}.json`);
+            const mealData = await mealRes.json();
+            
+            let stripHtml = "";
+            mealData.filter(m => m.a == a).forEach(w => {
+                stripHtml += `
+                    <div class="word-unit">
+                        <div class="w-ar">${w.ar}</div>
+                        <div class="w-tr">${w.tr}</div>
+                        <div class="w-mean">${w.mean}</div>
+                    </div>`;
+            });
+            document.getElementById('word-strip').innerHTML = stripHtml;
+
+            // 3. YAMAYI ÇEK (TXT)
+            try {
+                const yamaRes = await fetch(`yamalar/${s}-${a}.txt`);
+                const yamaText = await yamaRes.text();
+                document.getElementById('yama-box').innerText = yamaText;
+            } catch(e) { document.getElementById('yama-box').innerText = "Yama dosyası bulunamadı."; }
+        }
+
+        // KÖK TIKLANDIĞINDA MODÜLER BAB DOSYASINI ÇEK
+        async function loadBab(kok) {
+            const firstChar = kok[0];
+            const babRes = await fetch(`data/bablar/${firstChar}.json`);
+            const babData = await babRes.json();
+            // ... Kökü bulup ekrana basma mantığı
+        }
+    </script>
+</body>
+</html>
